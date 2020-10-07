@@ -1552,9 +1552,9 @@
           <term><varname>MaxAttempts=</varname></term>
           <listitem>
             <para>Specifies how many times the DHCPv4 client configuration should be attempted. Takes a
-            number or <literal>infinity</literal>. Defaults to <literal>infinity</literal>.
-            Note that the time between retries is increased exponentially, so the network will not be
-            overloaded even if this number is high.</para>
+            number or <literal>infinity</literal>. Defaults to <literal>infinity</literal>. Note that the
+            time between retries is increased exponentially, up to approximately one per minute, so the
+            network will not be overloaded even if this number is high.</para>
           </listitem>
         </varlistentry>
 
