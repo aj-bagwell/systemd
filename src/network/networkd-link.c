@@ -128,9 +128,8 @@ static bool link_dhcp4_server_enabled(Link *link) {
         return link->network->dhcp_server;
 }
 
-bool link_ipv4ll_enabled(Link *link, AddressFamily mask) {
+bool link_ipv4ll_enabled(Link *link) {
         assert(link);
-        assert((mask & ~(ADDRESS_FAMILY_IPV4 | ADDRESS_FAMILY_FALLBACK_IPV4)) == 0);
 
         if (link->flags & IFF_LOOPBACK)
                 return false;
@@ -153,7 +152,7 @@ bool link_ipv4ll_enabled(Link *link, AddressFamily mask) {
         if (link->network->bond)
                 return false;
 
-        return link->network->link_local & mask;
+        return link->network->link_local & ADDRESS_FAMILY_IPV4;
 }
 
 static bool link_ipv6ll_enabled(Link *link) {
@@ -1100,7 +1099,7 @@ void link_check_ready(Link *link) {
 
         if (link_has_carrier(link) || !link->network->configure_without_carrier) {
 
-                if (link_ipv4ll_enabled(link, ADDRESS_FAMILY_IPV4) && !link->ipv4ll_address)
+                if (link_ipv4ll_enabled(link) && !link->ipv4ll_address)
                         return;
 
                 if (link_ipv6ll_enabled(link) &&
@@ -1110,7 +1109,7 @@ void link_check_ready(Link *link) {
                 if ((link_dhcp4_enabled(link) || link_dhcp6_enabled(link)) &&
                     !link->dhcp4_configured &&
                     !link->dhcp6_configured &&
-                    !(link_ipv4ll_enabled(link, ADDRESS_FAMILY_FALLBACK_IPV4) && link->ipv4ll_address))
+                    !(link_ipv4ll_enabled(link) && link->ipv4ll_address))
                         /* When DHCP is enabled, at least one protocol must provide an address, or
                          * an IPv4ll fallback address must be configured. */
                         return;
@@ -1510,7 +1509,7 @@ static int link_acquire_ipv4_conf(Link *link) {
         assert(link->manager);
         assert(link->manager->event);
 
-        if (link_ipv4ll_enabled(link, ADDRESS_FAMILY_IPV4)) {
+        if (link_ipv4ll_enabled(link)) {
                 assert(link->ipv4ll);
 
                 log_link_debug(link, "Acquiring IPv4 link-local address");
@@ -2683,7 +2682,7 @@ static int link_configure(Link *link) {
         if (r < 0)
                 return r;
 
-        if (link_ipv4ll_enabled(link, ADDRESS_FAMILY_IPV4 | ADDRESS_FAMILY_FALLBACK_IPV4)) {
+        if (link_ipv4ll_enabled(link)) {
                 r = ipv4ll_configure(link);
                 if (r < 0)
                         return r;
