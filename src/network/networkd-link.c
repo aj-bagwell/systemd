@@ -945,7 +945,6 @@ static int nexthop_handler(sd_netlink *rtnl, sd_netlink_message *m, Link *link) 
 int link_request_set_nexthop(Link *link) {
         NextHop *nh;
         int r;
-
         LIST_FOREACH(nexthops, nh, link->network->static_nexthops) {
                 r = nexthop_configure(nh, link, nexthop_handler);
                 if (r < 0)
@@ -1099,17 +1098,14 @@ void link_check_ready(Link *link) {
 
         if (link_has_carrier(link) || !link->network->configure_without_carrier) {
 
-                if (link_ipv4ll_enabled(link) && !link->ipv4ll_address)
-                        return;
-
                 if (link_ipv6ll_enabled(link) &&
                     in_addr_is_null(AF_INET6, (const union in_addr_union*) &link->ipv6ll_address))
                         return;
 
-                if ((link_dhcp4_enabled(link) || link_dhcp6_enabled(link)) &&
+                if ((link_dhcp4_enabled(link) || link_dhcp6_enabled(link) || link_ipv4ll_enabled(link)) &&
                     !link->dhcp4_configured &&
                     !link->dhcp6_configured &&
-                    !(link_ipv4ll_enabled(link) && link->ipv4ll_address))
+                    !link->ipv4ll_address)
                         /* When DHCP is enabled, at least one protocol must provide an address, or
                          * an IPv4ll fallback address must be configured. */
                         return;
