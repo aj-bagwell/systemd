@@ -92,6 +92,11 @@ static int dhcp4_route_handler(sd_netlink *rtnl, sd_netlink_message *m, Link *li
                 link->dhcp4_configured = true;
                 /* New address and routes are configured now. Let's release old lease. */
                 dhcp4_release_old_lease(link);
+                
+                r = sd_ipv4ll_stop(link->ipv4ll);
+                if (r < 0)
+                    log_link_warning_errno(link, r, "Failed to drop IPv4 link-local address, ignoring: %m");
+                
                 link_check_ready(link);
         }
 
